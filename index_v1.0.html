@@ -13,6 +13,11 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;-webkit-tap-highlight-color:transparent}
 #app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative}
+button {
+    -webkit-user-select: none; /* 텍스트 선택 방지 */
+    -webkit-appearance: none;   /* iOS 기본 버튼 스타일 초기화 */
+    touch-action: manipulation; /* 더블 탭 확대 방지 */
+}
 .page{display:none;flex-direction:column;min-height:100vh}.page.active{display:flex}
 .hdr{background:var(--card);padding:14px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .hbk{width:36px;height:36px;border:none;background:var(--pl);border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;color:var(--primary);font-weight:700}
@@ -288,16 +293,9 @@ CREATE TABLE IF NOT EXISTS questions (
 );
 ALTER TABLE records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE questions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all_records" ON records FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "allow_all_questions" ON questions FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "admin_and_owner_access" ON records
-FOR ALL 
-USING (
-  EXISTS (
-    SELECT 1 FROM users 
-    WHERE users.id = current_setting('app.current_user_id', true)
-    AND (users.role = 'admin' OR users.id = records.teacher_id)
-  )
-);
+
 -- 계정 관리 테이블
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
@@ -306,18 +304,7 @@ CREATE TABLE IF NOT EXISTS users (
   role TEXT NOT NULL DEFAULT 'teacher'
 );
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "allow_login_read" ON users
-FOR SELECT
-USING (true);
-CREATE OR REPLACE FUNCTION public.set_session_user(user_id text)
-RETURNS void AS $$
-BEGIN
-  PERFORM set_config('app.current_user_id', user_id, false);
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-GRANT EXECUTE ON FUNCTION public.set_session_user(text) TO anon;
-GRANT EXECUTE ON FUNCTION public.set_session_user(text) TO authenticated;
-</div>
+CREATE POLICY "allow_all_users" ON users FOR ALL USING (true) WITH CHECK (true);</div>
     </div>
     <div class="ig"><label class="il">Supabase URL</label><input class="inp" id="cfg-url" placeholder="https://xxxx.supabase.co"></div>
     <div class="ig"><label class="il">Anon Key</label><input class="inp" id="cfg-key" placeholder="eyJhbGciOiJIUzI1NiIs..."></div>
@@ -1045,7 +1032,7 @@ async function genPDF(){
       // 헤더
       const apHH=p(64);
       hdrGradient(apCtx,apHH);
-      apCtx.font=`400 ${pf(8)}px 'Noto Sans KR',sans-serif`;apCtx.fillStyle='rgba(255,255,255,0.8)';
+      apCtx.font=`400 ${pf(9)}px 'Noto Sans KR',sans-serif`;apCtx.fillStyle='rgba(255,255,255,0.8)';
       apCtx.textAlign='left';apCtx.textBaseline='alphabetic';
       apCtx.fillText('Action Plan',ML,p(26));
       apCtx.font=`700 ${pf(20)}px 'Noto Sans KR',sans-serif`;apCtx.fillStyle='#fff';
